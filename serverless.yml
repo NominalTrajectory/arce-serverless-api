@@ -1,0 +1,87 @@
+service: arce-serverless-api
+
+custom:
+  secrets: ${file(secrets_conf.json)}
+
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  stage: dev
+  region: eu-central-1
+  environment: 
+    JWT_SECRET: ${self:custom.secrets.JWT_SECRET}
+    DB: ${self:custom.secrets.DB}
+
+plugins:
+  - serverless-offline
+
+functions:
+
+  verify-token:
+    handler: auth/VerifyToken.auth
+
+  login:
+    handler: auth/AuthHandler.login
+    events:
+      - http:
+          path: login
+          method: post
+          cors: true
+
+  register: 
+    handler: auth/AuthHandler.register
+    events:
+      - http:
+          path: register
+          method: post
+          cors: true
+
+
+  saveProfile:
+    handler: user/UserHandler.saveProfile
+    events:
+      - http:
+          path: profile
+          method: post
+          cors: true
+          authorizer: verify-token
+
+  updateProfile:
+    handler: user/UserHandler.updateProfile
+    events:
+      - http:
+          path: profile
+          method: put
+          cors: true
+          authorizer: verify-token
+
+  getProfile:
+    handler: user/UserHandler.getProfile
+    events:
+      - http:
+          path: profile
+          method: get
+          cors: true
+          authorizer: verify-token
+
+  saveLocation:
+    handler: location/LocationHandler.saveLocation
+    events:
+      - http: 
+          path: location/{id}
+          method: post
+          cors: true
+          authorizer: verify-token
+
+  getLocation:
+    handler: location/LocationHandler.getLocation
+    events:
+      - http: 
+          path: location/{id}
+          method: get
+          cors: true
+          authorizer: verify-token
+
+
+
