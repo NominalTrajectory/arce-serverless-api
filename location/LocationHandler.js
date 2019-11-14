@@ -8,7 +8,6 @@ module.exports.saveLocation = (event, context, callback) => {
     context.callbackWaitsForEmptyEventLoop = false;
     connectToDB()
       .then(() => {
-        JSON.parse(event.body);
         Location.findOneAndUpdate({_id:event.pathParameters.id}, JSON.parse(event.body), {upsert: true, new: true, setDefaultsOnInsert: true, runValidators: true})
         .then(location => callback(null, {
             statusCode: 201,

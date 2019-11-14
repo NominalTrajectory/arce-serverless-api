@@ -52,6 +52,9 @@ module.exports.getProfile = (event, context) => {
     }));
   };
 
+// UPDATE PROFILE
+
+
 // HELPERS
 function profile(userId) {
     return UserProfile.findById(userId, { password: 0 })

@@ -34,7 +34,7 @@ const generatePolicy = (principalId, effect, resource) => {
       }
   
       // if everything is good, save to request for use in other routes
-      return callback(null, generatePolicy(decoded.user_id, 'Allow', event.methodArn))
+      return callback(null, generatePolicy(decoded.user_id, 'Allow', '*'))
     });
   
   };
