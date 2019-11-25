@@ -23,7 +23,7 @@ module.exports.register = (event, context) => {
     .catch(err => ({
         statusCode: err.statusCode || 500,
         headers: { 'Content-Type': 'text/plain' },
-        body: err.message
+        body: JSON.stringify(err.message)
     }));
 };
 
@@ -59,7 +59,7 @@ module.exports.me = (event, context) => {
       .catch(err => ({
         statusCode: err.statusCode || 500,
         headers: { 'Content-Type': 'text/plain' },
-        body: { stack: err.stack, message: err.message }
+        body: JSON.stringify(err.message)
       }));
   };
   
@@ -85,11 +85,6 @@ function signToken(account) {
     ) {
       return Promise.reject(new Error('Password error. Password needs to be longer than 6 characters.'));
     }
-  
-  
-    if (
-      !(eventBody.email)
-    ) return Promise.reject(new Error('Email error. Email must have valid characters.'));
   
     return Promise.resolve();
   }

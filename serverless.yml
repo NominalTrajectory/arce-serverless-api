@@ -83,5 +83,14 @@ functions:
           cors: true
           authorizer: verify-token
 
+  newpwd:
+    handler: account/AccountHandler.newPwd
+    events:
+      - http:
+          path: account/newpwd
+          method: put
+          cors: true
+          authorizer: verify-token
+
 
 
