@@ -92,5 +92,12 @@ functions:
           cors: true
           authorizer: verify-token
 
-
+  deleteAccount:
+    handler: account/AccountHandler.delete
+    events:
+      - http:
+          path: account/delete
+          method: delete
+          cors: true
+          authorizer: verify-token
 

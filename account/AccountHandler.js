@@ -1,5 +1,6 @@
 const connectToDB = require('../db');
 const Account = require('../models/Account');
+const UserProfile = require('../models/UserProfile');
 const bcrypt = require('bcryptjs-then');
 
 /*
@@ -28,7 +29,26 @@ module.exports.newPwd = (event, context, callback) => {
 
 // RESET PASSWORD (EMAIL)
 
+// DEACTIVATE AN ACCOUNT
 
+// DELETE AN ACCOUNT AND USER PROFILE
+module.exports.delete = (event, context, callback) => {
+    context.callbackWaitsForEmptyEventLoop = false;
+    connectToDB()
+      .then(() => {
+        const { currentPwd } = JSON.parse(event.body);
+        deleteAccount(event.requestContext.authorizer.principalId, currentPwd)
+        .then(account => callback(null, {
+            statusCode: 200,
+            body: 'Account deleted'
+        }))
+        .catch(err => callback(null, {
+            statusCode: err.statusCode || 500,
+            headers: { 'Content-Type':'text/plain' },
+            body: JSON.stringify(err.message)
+        }));
+    });
+  };
 /*
 HELPERS
 */
@@ -60,4 +80,21 @@ function formatOk(newPwd) {
         return false;
       }
       return true;
+}
+
+function deleteAccount(id, currentPwd) {
+    return Account.findOne({_id:id})
+    .then(account =>
+    !account
+    ? Promise.reject(new Error('Account error'))
+    : bcrypt.compare(currentPwd, account.password)
+    )
+    .then(passwordIsValid =>
+    !passwordIsValid
+    ? Promise.reject(new Error('Current password is invalid'))
+    : Account.findOneAndDelete({_id:id})
+    )
+    .then(
+        UserProfile.findOneAndDelete({_id:id})
+    );
 }
