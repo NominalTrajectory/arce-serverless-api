@@ -101,3 +101,21 @@ functions:
           cors: true
           authorizer: verify-token
 
+  saveExercises:
+    handler: user/ExerciseHandler.saveExercise
+    events:
+      - http:
+          path: my/exercises
+          method: post
+          cors: true
+          authorizer: verify-token
+
+  getExercises:
+    handler: user/ExerciseHandler.getExercise
+    events:
+      - http:
+          path: my/exercises
+          method: get
+          cors: true
+          authorizer: verify-token
+
