@@ -8,7 +8,7 @@ module.exports = connectToDB = () => {
     }
 
     console.log('=> using new database connection to MongoDB Atlas instance');
-    return mongoose.connect(process.env.DB, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
+    return mongoose.connect(process.env.DB, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, useFindAndModify: false })
     .then (db => {
         connected = db.connections[0].readyState;
     });

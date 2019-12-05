@@ -56,7 +56,7 @@ module.exports.getExercise = (event, context) => {
 
   function exercises(user_id) {
     return UserActivity.findOne(
-        { "_id": user_id, 'exercises.datePerformed':"2019-12-02T00:00:00.000Z"}, 
+        { "_id": user_id }, 
         { _id: 0, __v: 0, createdAt: 0, updatedAt: 0, 'exercises._id': 0 }
         )
     .then(exercises =>
