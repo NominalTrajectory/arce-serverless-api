@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs-then');
 const nodemailer = require('nodemailer');
 const hbs = require('nodemailer-express-handlebars');
 const jwt = require('jsonwebtoken');
+const randomstring = require('randomstring');
 
 
 
@@ -57,7 +58,7 @@ module.exports.resetPwd = (event, context, callback) => {
         to: email,
         subject: "Password help has arrived!",
         html: `<h3>Dear user,</h3> 
-        <p>You requested for a password reset, please use this <a href="http://localhost/account/reset_password/${token}">link</a> to reset your password</p> 
+        <p>You requested for a password reset, please use this <a href="https://wttwkaveo7.execute-api.eu-central-1.amazonaws.com/dev/account/reset_password/${token}">link</a> to reset your password</p> 
         <br> 
         <p>Cheers!</p>`
     }
@@ -83,7 +84,58 @@ module.exports.resetPwd = (event, context, callback) => {
   });
 };
 
-// DEACTIVATE AN ACCOUNT
+// GENERATE NEW PASSWORD
+module.exports.generatePwd = (event, context, callback) => {
+  context.callbackWaitsForEmptyEventLoop = false;
+  connectToDB()
+    .then(() => {
+      const decodedToken = jwt.decode(event.pathParameters.token);
+      const tempPwd = randomstring.generate(10);
+
+      setTempPassword(decodedToken, tempPwd)
+      .then(account => {
+      let transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: "no.reply.ar.gym@gmail.com",
+          pass: "arceadmin"
+        }
+      });
+    
+      let mailOptions = {
+        from: '"AR Gym No-Reply" <no.reply.ar.gym@gmail.com>',
+        to: account.email,
+        subject: "Your temporary password.",
+        html: `<h3>Dear user,</h3> 
+        <p>Your new temporary password is below:</p> 
+        <br>
+        <h3>${tempPwd}</h3> 
+        <br> 
+        <p>Please change it as soon as you log in the app.</p>
+        <br> 
+        <p>Bedankt en tot ziens!</p>`
+    }
+
+    transporter.sendMail(mailOptions, function(error, info){
+      if(error) {
+        callback(null, {
+          statusCode: 500,
+          body: JSON.stringify(error)
+      });
+      }
+      callback(null, {
+        statusCode: 200,
+        body: 'Check your email for further instructions'
+    });
+    })
+  })
+  .catch(err => callback(null, {
+    statusCode: err.statusCode || 500,
+    headers: { 'Content-Type':'text/plain' },
+    body: JSON.stringify(err.message)
+}));
+  });
+};
 
 // DELETE AN ACCOUNT AND USER PROFILE
 module.exports.delete = (event, context, callback) => {
@@ -169,25 +221,14 @@ function resetPassword(email) {
     )
 }
 
-function sendEmail(email, token) {
-  
-  let transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: "no.reply.ar.gym@gmail.com",
-      pass: "arceadmin"
-    }
-  });
-
-  let mailOptions = {
-    from: '"AR Gym No-Reply" <no.reply.ar.gym@gmail.com>',
-    to: email,
-    subject: "Password help has arrived!",
-    html: `<h3>Dear user,</h3>`
-}
-
-  transporter.sendMail(mailOptions)
-  .then((info) => {
-    console.log(info);
-  });
+function setTempPassword(token, tempPwd) {
+  return bcrypt.hash(tempPwd, 8)
+  .then(hash => 
+    Account.findByIdAndUpdate(token.user_id, { password: hash })
+  )
+  .then(account => 
+  !account
+  ? Promise.reject(new Error('Account error'))
+  : account
+  );
 }
