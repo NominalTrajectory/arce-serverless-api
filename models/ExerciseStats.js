@@ -26,9 +26,12 @@ const ExerciseStatsSchema = new mongoose.Schema({
     weights: {
         type: Number,
         required: true
+    },
+    calories: {
+        type: Number,
+        required: true
     }
 });
-
 
 const ExerciseStats = mongoose.model('ExerciseStats', ExerciseStatsSchema);
 module.exports = ExerciseStats;

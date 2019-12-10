@@ -12,7 +12,6 @@ module.exports.saveExercise = (event, context, callback) => {
     context.callbackWaitsForEmptyEventLoop = false;
     connectToDB()
       .then(() => {
-        //const { name, age, gender, height, weight, fitnessLevel, fitnessGoal } = JSON.parse(event.body);
         UserActivity.findOneAndUpdate(
             { _id: event.requestContext.authorizer.principalId }, 
             { _id: event.requestContext.authorizer.principalId, $push: {exercises: JSON.parse(event.body)}}, 
@@ -85,9 +84,3 @@ module.exports.getExercise = (event, context) => {
     )
     .catch(err => Promise.reject(new Error(err)));
   }
-
-
-//   { $match: { _id: mongoose.Types.ObjectId(user_id) }},
-//         { $unwind: '$exercises' },
-//         { $match: {'exercises.sets': {$gte: 0}}},
-//         { $group: {_id: '$_id', exercises: {$push: '$exercises.sets'}}}

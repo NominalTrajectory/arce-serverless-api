@@ -2,6 +2,14 @@ const connectToDB = require('../db');
 const Account = require('../models/Account');
 const UserProfile = require('../models/UserProfile');
 const bcrypt = require('bcryptjs-then');
+const nodemailer = require('nodemailer');
+const hbs = require('nodemailer-express-handlebars');
+const jwt = require('jsonwebtoken');
+
+
+
+
+
 
 /*
 FUNCTIONS
@@ -28,6 +36,52 @@ module.exports.newPwd = (event, context, callback) => {
 
 
 // RESET PASSWORD (EMAIL)
+module.exports.resetPwd = (event, context, callback) => {
+  context.callbackWaitsForEmptyEventLoop = false;
+  connectToDB()
+    .then(() => {
+    
+      const { email } = JSON.parse(event.body);
+      resetPassword(email)
+      .then(token => {
+      let transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: "no.reply.ar.gym@gmail.com",
+          pass: "arceadmin"
+        }
+      });
+    
+      let mailOptions = {
+        from: '"AR Gym No-Reply" <no.reply.ar.gym@gmail.com>',
+        to: email,
+        subject: "Password help has arrived!",
+        html: `<h3>Dear user,</h3> 
+        <p>You requested for a password reset, please use this <a href="http://localhost/account/reset_password/${token}">link</a> to reset your password</p> 
+        <br> 
+        <p>Cheers!</p>`
+    }
+
+    transporter.sendMail(mailOptions, function(error, info){
+      if(error) {
+        callback(null, {
+          statusCode: 500,
+          body: JSON.stringify(error)
+      });
+      }
+      callback(null, {
+        statusCode: 200,
+        body: 'Check your email for further instructions'
+    });
+    })
+  })
+  .catch(err => callback(null, {
+    statusCode: err.statusCode || 500,
+    headers: { 'Content-Type':'text/plain' },
+    body: JSON.stringify(err.message)
+}));
+  });
+};
 
 // DEACTIVATE AN ACCOUNT
 
@@ -97,4 +151,43 @@ function deleteAccount(id, currentPwd) {
     .then(
         UserProfile.findOneAndDelete({_id:id})
     );
+}
+
+function signToken(account) {
+  const token =  jwt.sign({ user_id: account._id, role: account.role }, process.env.JWT_SECRET, {
+    expiresIn: '730d' // expires in 2 years
+  });
+  return token;
+}
+
+function resetPassword(email) {
+  return Account.findOne({ email: email })
+  .then(account => 
+    !account
+    ? Promise.reject(new Error('No account found with this email address.'))
+    : signToken(account)
+    )
+}
+
+function sendEmail(email, token) {
+  
+  let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: "no.reply.ar.gym@gmail.com",
+      pass: "arceadmin"
+    }
+  });
+
+  let mailOptions = {
+    from: '"AR Gym No-Reply" <no.reply.ar.gym@gmail.com>',
+    to: email,
+    subject: "Password help has arrived!",
+    html: `<h3>Dear user,</h3>`
+}
+
+  transporter.sendMail(mailOptions)
+  .then((info) => {
+    console.log(info);
+  });
 }

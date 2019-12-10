@@ -92,6 +92,14 @@ functions:
           cors: true
           authorizer: verify-token
 
+  resetpwd:
+    handler: account/AccountHandler.resetPwd
+    events:
+      - http:
+          path: account/reset_password
+          method: post
+          cors: true
+
   deleteAccount:
     handler: account/AccountHandler.delete
     events:

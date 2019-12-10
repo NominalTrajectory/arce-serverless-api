@@ -26,6 +26,10 @@ const exerciseStatsSchema = new mongoose.Schema({
     weights: {
         type: Number,
         required: true
+    },
+    calories: {
+        type: Number,
+        required: true
     }
 });
 

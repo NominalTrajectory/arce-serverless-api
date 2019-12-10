@@ -33,6 +33,22 @@ module.exports.saveProfile = (event, context, callback) => {
 
 
 // UPDATE PROFILE
+module.exports.updateProfile = (event, context, callback) => {
+  context.callbackWaitsForEmptyEventLoop = false;
+  connectToDB()
+    .then(() => {
+      UserProfile.findOneAndUpdate({ _id: event.requestContext.authorizer.principalId }, JSON.parse(event.body), { runValidators: true, new: true })
+      .then(userProfile => callback(null, {
+          statusCode: 200,
+          body: JSON.stringify(userProfile)
+      }))
+      .catch(err => callback(null, {
+          statusCode: err.statusCode || 500,
+          headers: { 'Content-Type':'text/plain' },
+          body: JSON.stringify(err.message)
+      }));
+  });
+};
 
 // GET PROFILE
 module.exports.getProfile = (event, context) => {
